@@ -40,51 +40,34 @@
     </div>
 
     {{-- Statistiques --}}
- <div class="relative bg-black/20 backdrop-blur-sm">
-     <div class="max-w-6xl mx-auto px-4 py-6">
-         <div class="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
-             <div>
-                 <div class="text-3xl font-extrabold text-yellow-200">5.5</div>
-                 <div class="text-sm text-white/80">kWh/m²/jour</div>
-             </div>
-             <div>
-                 <div class="text-3xl font-extrabold text-yellow-200">&lt;40%</div>
-                 <div class="text-sm text-white/80">Électrification rurale</div>
-             </div>
-             <div>
-                 <div class="text-3xl font-extrabold text-yellow-200">-80%</div>
-                 <div class="text-sm text-white/80">Coût solaire en 10 ans</div>
-             </div>
-             <div>
-                 <div class="text-3xl font-extrabold text-yellow-200">60%</div>
-                 <div class="text-sm text-white/80">Couverture mobile money</div>
-             </div>
-             <div>
-                 <div class="text-3xl font-extrabold text-yellow-200" id="hero-waitlist-count">
-                    {{ \App\Models\Waitlist::count() }}
-                 </div>
-                 <div class="text-sm text-white/80">en liste d'attente 🚀</div>
-             </div>
-         </div>
-     </div>
- </div>
-
- {{-- Script compteur live --}}
- <script>
-  function refreshHeroCounter()
-   {
-     fetch('/waitlist/count')
-        .then(r => r.json())
-        .then(data => {
-            const el = document.getElementById('hero-waitlist-count');
-            if (el && data.count !== undefined) {
-                el.textContent = data.count;
-            }
-        })
-        .catch(() => {});
-    }
- setInterval(refreshHeroCounter, 30000);
- </script>
+    <div class="relative bg-black/20 backdrop-blur-sm">
+        <div class="max-w-6xl mx-auto px-4 py-6">
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-6 text-center">
+                <div>
+                    <div class="text-3xl font-extrabold text-yellow-200">5.5</div>
+                    <div class="text-sm text-white/80">kWh/m²/jour</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-yellow-200">&lt;40%</div>
+                    <div class="text-sm text-white/80">Électrification rurale</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-yellow-200">-80%</div>
+                    <div class="text-sm text-white/80">Coût solaire en 10 ans</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-yellow-200">60%</div>
+                    <div class="text-sm text-white/80">Couverture mobile money</div>
+                </div>
+                <div>
+                    <div class="text-3xl font-extrabold text-yellow-200" id="hero-waitlist-count">
+                        {{ \App\Models\Waitlist::count() }}
+                    </div>
+                    <div class="text-sm text-white/80">en liste d'attente 🚀</div>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>
 
 {{-- ARTICLE À LA UNE --}}
@@ -99,6 +82,9 @@
             <div class="md:w-1/2">
                 @if($featured->cover_image)
                     <img src="{{ Storage::url($featured->cover_image) }}"
+                         class="w-full h-72 md:h-full object-cover" alt="{{ $featured->title }}">
+                @elseif($featured->category->image_url)
+                    <img src="{{ $featured->category->image_url }}"
                          class="w-full h-72 md:h-full object-cover" alt="{{ $featured->title }}">
                 @else
                     <div class="w-full h-72 bg-gradient-to-br from-orange-400 to-yellow-400 flex items-center justify-center text-8xl">
@@ -120,7 +106,6 @@
                 <div class="flex items-center gap-4 text-sm text-gray-400 mb-6">
                     <span>✍️ {{ $featured->user->name }}</span>
                     <span>📅 {{ $featured->created_at->format('d/m/Y') }}</span>
-                    <span>⏱️ {{ $featured->reading_time }} min</span>
                     <span>👁️ {{ $featured->views }}</span>
                 </div>
                 <a href="{{ route('blog.show', $featured->slug) }}"
@@ -134,7 +119,7 @@
 @endif
 
 {{-- FILTRES CATÉGORIES --}}
-<section id="articles" class="max-w-6xl mx-auto px-4 pb-4">
+<section id="articles" class="max-w-6xl mx-auto px-4 py-8">
     <div class="flex items-center gap-3 mb-6">
         <div class="w-1 h-8 bg-orange-500 rounded-full"></div>
         <h2 class="text-2xl font-bold text-gray-800 dark:text-white">📰 Tous les articles</h2>
@@ -147,21 +132,22 @@
         </a>
         @foreach($categories as $cat)
         <a href="{{ route('blog.index', ['category' => $cat->slug]) }}"
-           class="px-5 py-2 rounded-full text-sm font-semibold text-white transition hover:opacity-80
+           class="px-5 py-2 rounded-full text-sm font-semibold text-white transition hover:opacity-90
                   {{ request('category') === $cat->slug ? 'ring-2 ring-offset-2 ring-orange-400' : '' }}"
            style="background: {{ $cat->color }}">
-            {{ $cat->name }} ({{ $cat->posts_count }})
+            {{ $cat->name }}
+            <span class="ml-1 opacity-75 text-xs">({{ $cat->posts_count }})</span>
         </a>
         @endforeach
     </div>
 </section>
 
-{{-- RECHERCHE ACTIVE --}}
+{{-- RÉSULTAT DE RECHERCHE --}}
 @if(request('search'))
 <div class="max-w-6xl mx-auto px-4 mb-4">
     <div class="bg-orange-50 dark:bg-orange-900/20 border border-orange-200 rounded-xl px-4 py-3 text-sm">
         🔍 Résultats pour : <strong>"{{ request('search') }}"</strong>
-        — {{ $posts->total() }} article(s)
+        — {{ $posts->total() }} article(s) trouvé(s)
         <a href="{{ route('blog.index') }}" class="text-orange-600 hover:underline ml-3 font-medium">✕ Effacer</a>
     </div>
 </div>
@@ -181,10 +167,17 @@
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mt-6">
         @foreach($posts as $post)
         <article class="bg-white dark:bg-gray-800 rounded-2xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group border border-gray-100 dark:border-gray-700">
+
+            {{-- Image --}}
             <a href="{{ route('blog.show', $post->slug) }}" class="block overflow-hidden h-48">
                 @if($post->cover_image)
                     <img src="{{ Storage::url($post->cover_image) }}"
-                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500">
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         alt="{{ $post->title }}">
+                @elseif($post->category->image_url)
+                    <img src="{{ $post->category->image_url }}"
+                         class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                         alt="{{ $post->category->name }}">
                 @else
                     <div class="w-full h-full flex items-center justify-center text-6xl"
                          style="background: linear-gradient(135deg, {{ $post->category->color ?? '#F97316' }}33, {{ $post->category->color ?? '#F97316' }}11)">
@@ -192,34 +185,49 @@
                     </div>
                 @endif
             </a>
+
+            {{-- Contenu --}}
             <div class="p-6">
+                {{-- Catégorie --}}
                 <span class="inline-block px-3 py-1 rounded-full text-xs font-bold text-white mb-3"
                       style="background: {{ $post->category->color ?? '#F97316' }}">
                     {{ $post->category->name ?? 'Non classé' }}
                 </span>
+
+                {{-- Titre --}}
                 <h2 class="text-lg font-bold text-gray-800 dark:text-white mb-2 group-hover:text-orange-500 transition-colors leading-snug">
                     <a href="{{ route('blog.show', $post->slug) }}">{{ $post->title }}</a>
                 </h2>
+
+                {{-- Extrait --}}
                 <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">
                     {{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}
                 </p>
-                <div class="flex items-center gap-2">
-                    <span>📅 {{ $post->created_at->format('d/m/Y') }}</span>
-                    <span>👁️ {{ $post->views }}</span>
-                    <span>💬 {{ $post->comments->where('is_approved', true)->count() }}</span>
-                </div>
-                <div class="flex items-center gap-1">
-                  @php $avg = $post->averageRating(); @endphp
-                  @for($i = 1; $i <= 5; $i++)
-                    <span class="text-sm {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
-                  @endfor
-                 <span class="text-xs text-gray-400 ml-1">({{ $post->ratings->count() }})</span>
+
+                {{-- Meta --}}
+                <div class="flex items-center justify-between text-xs text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-700">
+                    <div class="flex items-center gap-3">
+                        <span>📅 {{ $post->created_at->format('d/m/Y') }}</span>
+                        <span>👁️ {{ $post->views }}</span>
+                    </div>
+                    {{-- Étoiles --}}
+                    <div class="flex items-center gap-1">
+                        @php $avg = $post->averageRating(); @endphp
+                        @for($i = 1; $i <= 5; $i++)
+                            <span class="text-sm {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}">★</span>
+                        @endfor
+                        <span class="text-xs text-gray-400 ml-1">({{ $post->ratings->count() }})</span>
+                    </div>
                 </div>
             </div>
         </article>
         @endforeach
     </div>
-    <div class="mt-12 flex justify-center">{{ $posts->links() }}</div>
+
+    {{-- Pagination --}}
+    <div class="mt-12 flex justify-center">
+        {{ $posts->links() }}
+    </div>
     @endif
 </section>
 
@@ -240,5 +248,21 @@
         @endguest
     </div>
 </section>
+
+{{-- Script compteur live --}}
+<script>
+function refreshHeroCounter() {
+    fetch('/waitlist/count')
+        .then(r => r.json())
+        .then(data => {
+            const el = document.getElementById('hero-waitlist-count');
+            if (el && data.count !== undefined) {
+                el.textContent = data.count;
+            }
+        })
+        .catch(() => {});
+}
+setInterval(refreshHeroCounter, 30000);
+</script>
 
 @endsection

@@ -28,8 +28,14 @@
             <span>✍️ {{ $post->user->name }}</span>
             <span>📅 {{ $post->created_at->format('d M Y') }}</span>
             <span>👁️ {{ $post->views }} vues</span>
-            <span>⏱️ {{ $post->reading_time }} min de lecture</span>
             <span>💬 {{ $post->comments->count() }} commentaire(s)</span>
+            <div class="flex items-center gap-1">
+                @php $avg = $post->averageRating(); @endphp
+                @for($i = 1; $i <= 5; $i++)
+                    <span class="text-sm {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                @endfor
+                <span class="text-xs ml-1">({{ $post->ratings->count() }})</span>
+            </div>
         </div>
     </header>
 
@@ -37,6 +43,11 @@
     @if($post->cover_image)
     <div class="mb-8 rounded-2xl overflow-hidden shadow-lg">
         <img src="{{ Storage::url($post->cover_image) }}"
+             class="w-full max-h-96 object-cover" alt="{{ $post->title }}">
+    </div>
+    @elseif($post->category->image_url)
+    <div class="mb-8 rounded-2xl overflow-hidden shadow-lg">
+        <img src="{{ $post->category->image_url }}"
              class="w-full max-h-96 object-cover" alt="{{ $post->title }}">
     </div>
     @endif
@@ -65,6 +76,59 @@
                 prose-headings:font-bold prose-headings:text-gray-800
                 prose-a:text-orange-600 prose-img:rounded-xl">
         {!! nl2br(e($post->content)) !!}
+    </div>
+
+    {{-- Notation par étoiles --}}
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-10">
+        <h3 class="font-bold text-gray-800 dark:text-white mb-4">⭐ Noter cet article</h3>
+
+        @php
+            $avg        = $post->averageRating();
+            $totalVotes = $post->ratings->count();
+            $userNote   = $post->userRating();
+        @endphp
+
+        {{-- Affichage moyenne --}}
+        <div class="flex items-center gap-3 mb-4">
+            <div class="flex gap-1">
+                @for($i = 1; $i <= 5; $i++)
+                    <span class="text-2xl {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-200 dark:text-gray-600' }}">★</span>
+                @endfor
+            </div>
+            <span class="text-xl font-bold text-gray-700 dark:text-gray-200">{{ $avg }}/5</span>
+            <span class="text-sm text-gray-400">({{ $totalVotes }} vote(s))</span>
+        </div>
+
+        @auth
+            @if(auth()->user()->is_verified)
+                @if(session('rating_success'))
+                    <div class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm mb-3">
+                        ✅ {{ session('rating_success') }}
+                    </div>
+                @endif
+                <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                    {{ $userNote ? 'Votre note : ' . $userNote . '/5 — Modifier :' : 'Donnez votre note :' }}
+                </p>
+                <div class="flex gap-2 items-center">
+                    @for($i = 1; $i <= 5; $i++)
+                    <span class="text-3xl cursor-pointer transition-colors hover:text-yellow-400
+                                 {{ $userNote >= $i ? 'text-yellow-400' : 'text-gray-300 dark:text-gray-600' }}"
+                          onclick="submitRating({{ $i }}, {{ $post->id }})">★</span>
+                    @endfor
+                </div>
+                <form id="rating-form-{{ $post->id }}" method="POST"
+                      action="{{ route('post.rate', $post) }}">
+                    @csrf
+                    <input type="hidden" name="stars" id="stars-input-{{ $post->id }}">
+                </form>
+            @endif
+        @else
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+                <a href="{{ route('login') }}" class="text-orange-500 font-semibold hover:underline">
+                    Connectez-vous
+                </a> pour noter cet article.
+            </p>
+        @endauth
     </div>
 
     {{-- Partage réseaux sociaux --}}
@@ -129,76 +193,6 @@
         </div>
     </div>
 
-    {{-- Notation par étoiles --}}
-    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-10">
-      <h3 class="font-bold text-gray-800 dark:text-white mb-4">⭐ Noter cet article</h3>
-
-      @php
-          $avg        = $post->averageRating();
-          $totalVotes = $post->ratings->count();
-          $userNote   = $post->userRating();
-      @endphp
-
-      {{-- Affichage moyenne --}}
-      <div class="flex items-center gap-3 mb-4">
-          <div class="flex gap-1">
-              @for($i = 1; $i <= 5; $i++)
-                 <span class="text-2xl {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-200' }}">★</span>
-              @endfor
-         </div>
-           <span class="text-xl font-bold text-gray-700 dark:text-gray-200">{{ $avg }}/5</span>
-           <span class="text-sm text-gray-400">({{ $totalVotes }} vote(s))</span>
-     </div>
-
-     @auth
-          @if(auth()->user()->is_verified)
-             @if(session('rating_success'))
-                  <div class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm mb-3">
-                      ✅ {{ session('rating_success') }}
-                  </div>
-             @endif
-
-               {{-- UN SEUL form --}}
-             <form id="rating-form-{{ $post->id }}" method="POST"
-                  action="{{ route('post.rate', $post) }}">
-                  @csrf
-                 <input type="hidden" name="stars" id="stars-input-{{ $post->id }}">
-
-                   <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                     {{ $userNote ? 'Votre note : ' . $userNote . '/5 — Modifier :' : 'Donnez votre note :' }}
-                   </p>
-
-                  <div class="flex gap-2 items-center">
-                      @for($i = 1; $i <= 5; $i++)
-                         <span class="text-3xl cursor-pointer transition-colors hover:text-yellow-400
-                                     {{ $userNote >= $i ? 'text-yellow-400' : 'text-gray-300' }}"
-                              onclick="submitRating({{ $i }}, {{ $post->id }})">★</span>
-                      @endfor
-                 </div>
-             </form>
-             @else
-               <p class="text-sm text-gray-500 dark:text-gray-400">
-                 Votre compte doit être vérifié pour noter cet article.
-               </p>
-         @endif
-         @else
-           <p class="text-sm text-gray-500 dark:text-gray-400">
-              <a href="{{ route('login') }}" class="text-orange-500 font-semibold hover:underline">
-                 Connectez-vous
-              </a> pour noter cet article.
-          </p>
-     @endauth
- </div>
-
- <script>
-     function submitRating(stars, postId) 
-        {
-         document.getElementById('stars-input-' + postId).value = stars;
-         document.getElementById('rating-form-' + postId).submit();
-        }
- </script>
-
-
     {{-- Articles liés --}}
     @if($related->isNotEmpty())
     <section class="mb-10">
@@ -209,6 +203,9 @@
                class="bg-white dark:bg-gray-800 rounded-xl shadow-sm hover:shadow-md transition overflow-hidden group border border-gray-100 dark:border-gray-700">
                 @if($r->cover_image)
                     <img src="{{ Storage::url($r->cover_image) }}"
+                         class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300">
+                @elseif($r->category->image_url)
+                    <img src="{{ $r->category->image_url }}"
                          class="w-full h-32 object-cover group-hover:scale-105 transition-transform duration-300">
                 @else
                     <div class="w-full h-32 flex items-center justify-center text-4xl"
@@ -226,32 +223,24 @@
     </section>
     @endif
 
-     {{-- CTA Liste d'attente --}}
-     @include('partials.waitlist-cta')
+    {{-- CTA Liste d'attente --}}
+    @include('partials.waitlist-cta')
 
-    {{-- ═══════════════════════════════════════════════════════ --}}
-    {{-- SECTION COMMENTAIRES                                    --}}
-    {{-- ═══════════════════════════════════════════════════════ --}}
+    {{-- SECTION COMMENTAIRES --}}
     <section id="comments" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-8">
 
         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">
             💬 Commentaires ({{ $post->comments->count() }})
         </h2>
 
-        {{-- Liste des commentaires --}}
         @forelse($post->comments as $comment)
         <div class="mb-6" id="comment-{{ $comment->id }}">
             <div class="flex gap-4">
-
-                {{-- Avatar --}}
                 <div class="w-10 h-10 rounded-full bg-gradient-to-br from-orange-400 to-yellow-400
                             flex items-center justify-center text-white font-bold flex-shrink-0 text-sm shadow">
                     {{ strtoupper(substr($comment->user->name, 0, 1)) }}
                 </div>
-
                 <div class="flex-1">
-
-                    {{-- Bulle commentaire --}}
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl rounded-tl-none px-4 py-3">
                         <div class="flex items-center justify-between mb-1">
                             <span class="font-semibold text-gray-800 dark:text-white text-sm">
@@ -266,7 +255,6 @@
                         </p>
                     </div>
 
-                    {{-- Bouton Répondre --}}
                     @auth
                     @if(auth()->user()->is_verified)
                     <button onclick="toggleReply('reply-form-{{ $comment->id }}')"
@@ -279,7 +267,6 @@
                     @endif
                     @endauth
 
-                    {{-- Formulaire de réponse --}}
                     @auth
                     @if(auth()->user()->is_verified)
                     <div id="reply-form-{{ $comment->id }}" class="hidden mt-3">
@@ -314,7 +301,6 @@
                     @endif
                     @endauth
 
-                    {{-- Réponses --}}
                     @if($comment->replies->isNotEmpty())
                     <div class="mt-4 ml-4 space-y-4 border-l-2 border-orange-100 dark:border-orange-900 pl-4">
                         @foreach($comment->replies as $reply)
@@ -357,11 +343,6 @@
         <div class="border-t border-gray-100 dark:border-gray-700 pt-6 mt-6">
             @auth
                 @if(auth()->user()->is_verified)
-                    @if(session('success'))
-                        <div class="bg-green-100 text-green-700 px-4 py-3 rounded-xl mb-4 text-sm border border-green-200">
-                            {{ session('success') }}
-                        </div>
-                    @endif
                     <h3 class="font-semibold text-gray-700 dark:text-gray-200 mb-4">
                         ✍️ Laisser un commentaire
                     </h3>
@@ -445,6 +426,11 @@ function copyLink(btn) {
             btn.classList.remove('bg-green-200', 'text-green-700');
         }, 2000);
     });
+}
+
+function submitRating(stars, postId) {
+    document.getElementById('stars-input-' + postId).value = stars;
+    document.getElementById('rating-form-' + postId).submit();
 }
 </script>
 
