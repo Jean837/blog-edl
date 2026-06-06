@@ -17,6 +17,7 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/article/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/a-propos', fn() => view('blog.about'))->name('blog.about');
+Route::get('/createur', fn() => view('blog.creator'))->name('blog.creator');
 
 // ─── Newsletter ───────────────────────────────────────────────────────────────
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
