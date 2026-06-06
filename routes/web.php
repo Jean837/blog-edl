@@ -4,7 +4,6 @@ use App\Http\Controllers\Admin\CommentController;
 use App\Http\Controllers\Admin\DashboardController;
 use App\Http\Controllers\Admin\PostController as AdminPostController;
 use App\Http\Controllers\Admin\UserController;
-use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
@@ -18,7 +17,6 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', [BlogController::class, 'index'])->name('blog.index');
 Route::get('/article/{slug}', [BlogController::class, 'show'])->name('blog.show');
 Route::get('/a-propos', fn() => view('blog.about'))->name('blog.about');
-Route::get('/createur', fn() => view('blog.creator'))->name('blog.creator');
 
 // ─── Newsletter ───────────────────────────────────────────────────────────────
 Route::post('/newsletter/subscribe', [NewsletterController::class, 'subscribe'])->name('newsletter.subscribe');
@@ -31,15 +29,8 @@ Route::get('/waitlist/count', [WaitlistController::class, 'count'])->name('waitl
 // ─── Auth (Breeze) ────────────────────────────────────────────────────────────
 require __DIR__.'/auth.php';
 
-// ─── Vérification email ───────────────────────────────────────────────────────
-Route::middleware('auth')->group(function () {
-    Route::get('/verify-email', [EmailVerificationController::class, 'show'])->name('verify.email.form');
-    Route::post('/verify-email', [EmailVerificationController::class, 'verify'])->name('verify.email');
-    Route::post('/verify-email/resend', [EmailVerificationController::class, 'resend'])->name('verify.email.resend');
-});
-
-// ─── Espace utilisateur connecté + vérifié ────────────────────────────────────
-Route::middleware(['auth', 'verified.custom'])->group(function () {
+// ─── Espace utilisateur connecté ──────────────────────────────────────────────
+Route::middleware(['auth'])->group(function () {
 
     Route::get('/dashboard', function () {
         if (auth()->user()->isAdmin()) {
