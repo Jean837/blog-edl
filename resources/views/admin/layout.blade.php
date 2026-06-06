@@ -14,13 +14,13 @@
     <aside class="w-64 bg-gray-900 dark:bg-gray-950 min-h-screen p-6 fixed flex flex-col">
 
         {{-- Logo --}}
-        <div class="flex items-center gap-2">
-          <img src="/images/logo.png" alt="EDL Logo" class="h-8 w-auto">
+       <div class="flex items-center gap-2">
+          <img src="{{ asset('images/logo.png.jpeg') }}" alt="EDL Logo" class="h-8 w-auto">
           <div>
-             <div class="text-white font-extrabold leading-none">EDL Admin</div>
-             <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
-          </div>
-        </div>
+              <div class="text-white font-extrabold leading-none">EDL Admin</div>
+              <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
+         </div>
+      </div>
 
         {{-- Navigation --}}
         <nav class="space-y-1 flex-1">

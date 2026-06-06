@@ -27,7 +27,7 @@
 
         {{-- Logo --}}
         <a href="{{ route('blog.index') }}" class="flex items-center gap-2 shrink-0">
-         <img src="/images/logo.png" alt="EDL Logo" class="h-10 w-auto">
+          <img src="{{ asset('images/logo.png.jpeg') }}" alt="EDL Logo" class="h-10 w-auto">
         </a>
 
         {{-- Lien plateforme --}}
