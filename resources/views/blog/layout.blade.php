@@ -7,6 +7,15 @@
     <meta name="description" content="@yield('description', 'Solutions énergétiques accessibles pour le Bénin : solaire, kits, guides et actualités.')">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
+    <script>
+       tailwind.config = { darkMode: 'class' }
+       // Appliquer le thème sauvegardé immédiatement
+       if (localStorage.theme === 'dark' ||
+       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) 
+       {
+         document.documentElement.classList.add('dark');
+        }
+    </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
@@ -18,13 +27,7 @@
 
         {{-- Logo --}}
         <a href="{{ route('blog.index') }}" class="flex items-center gap-2 shrink-0">
-            <div class="w-10 h-10 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-xl flex items-center justify-center shadow">
-                <span class="text-xl">☀️</span>
-            </div>
-            <div>
-                <div class="text-lg font-extrabold text-orange-600 leading-none">EDL</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400 leading-none">Énergie Pour le Bénin</div>
-            </div>
+         <img src="/images/logo.png" alt="EDL Logo" class="h-10 w-auto">
         </a>
 
         {{-- Lien plateforme --}}

@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\EmailVerificationController;
 use App\Http\Controllers\BlogController;
 use App\Http\Controllers\NewsletterController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\RatingController;
 use App\Http\Controllers\WaitlistController;
 use Illuminate\Support\Facades\Route;
 
@@ -48,6 +49,7 @@ Route::middleware(['auth', 'verified.custom'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/article/{post}/comment', [BlogController::class, 'comment'])->name('blog.comment');
+    Route::post('/article/{post}/rate', [RatingController::class, 'store'])->name('post.rate');
 });
 
 // ─── Admin ────────────────────────────────────────────────────────────────────

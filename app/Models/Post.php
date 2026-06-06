@@ -33,6 +33,19 @@ class Post extends Model
         return $this->hasMany(Comment::class);
     }
 
+    public function ratings() {
+        return $this->hasMany(Rating::class);
+    }
+
+    public function averageRating(): float {
+        return round($this->ratings()->avg('stars') ?? 0, 1);
+    }
+
+    public function userRating(): ?int {
+       if (!auth()->check()) return null;
+       return $this->ratings()->where('user_id', auth()->id())->value('stars');
+    }
+
     // Temps de lecture estimé (200 mots/min)
     public function getReadingTimeAttribute(): int 
     {

@@ -14,18 +14,12 @@
     <aside class="w-64 bg-gray-900 dark:bg-gray-950 min-h-screen p-6 fixed flex flex-col">
 
         {{-- Logo --}}
-        <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center gap-2">
-                <div class="w-9 h-9 bg-gradient-to-br from-orange-500 to-yellow-400 rounded-xl flex items-center justify-center">
-                    <span class="text-lg">☀️</span>
-                </div>
-                <div>
-                    <div class="text-white font-extrabold leading-none">EDL Admin</div>
-                    <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
-                </div>
-            </div>
-            <button onclick="toggleDarkMode()" id="dark-mode-btn"
-                    class="text-xl hover:scale-110 transition-transform">🌙</button>
+        <div class="flex items-center gap-2">
+          <img src="/images/logo.png" alt="EDL Logo" class="h-8 w-auto">
+          <div>
+             <div class="text-white font-extrabold leading-none">EDL Admin</div>
+             <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
+          </div>
         </div>
 
         {{-- Navigation --}}

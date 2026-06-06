@@ -129,6 +129,76 @@
         </div>
     </div>
 
+    {{-- Notation par étoiles --}}
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow p-6 mb-10">
+      <h3 class="font-bold text-gray-800 dark:text-white mb-4">⭐ Noter cet article</h3>
+
+      @php
+          $avg        = $post->averageRating();
+          $totalVotes = $post->ratings->count();
+          $userNote   = $post->userRating();
+      @endphp
+
+      {{-- Affichage moyenne --}}
+      <div class="flex items-center gap-3 mb-4">
+          <div class="flex gap-1">
+              @for($i = 1; $i <= 5; $i++)
+                 <span class="text-2xl {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-200' }}">★</span>
+              @endfor
+         </div>
+           <span class="text-xl font-bold text-gray-700 dark:text-gray-200">{{ $avg }}/5</span>
+           <span class="text-sm text-gray-400">({{ $totalVotes }} vote(s))</span>
+     </div>
+
+     @auth
+          @if(auth()->user()->is_verified)
+             @if(session('rating_success'))
+                  <div class="bg-green-100 text-green-700 px-3 py-2 rounded-xl text-sm mb-3">
+                      ✅ {{ session('rating_success') }}
+                  </div>
+             @endif
+
+               {{-- UN SEUL form --}}
+             <form id="rating-form-{{ $post->id }}" method="POST"
+                  action="{{ route('post.rate', $post) }}">
+                  @csrf
+                 <input type="hidden" name="stars" id="stars-input-{{ $post->id }}">
+
+                   <p class="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                     {{ $userNote ? 'Votre note : ' . $userNote . '/5 — Modifier :' : 'Donnez votre note :' }}
+                   </p>
+
+                  <div class="flex gap-2 items-center">
+                      @for($i = 1; $i <= 5; $i++)
+                         <span class="text-3xl cursor-pointer transition-colors hover:text-yellow-400
+                                     {{ $userNote >= $i ? 'text-yellow-400' : 'text-gray-300' }}"
+                              onclick="submitRating({{ $i }}, {{ $post->id }})">★</span>
+                      @endfor
+                 </div>
+             </form>
+             @else
+               <p class="text-sm text-gray-500 dark:text-gray-400">
+                 Votre compte doit être vérifié pour noter cet article.
+               </p>
+         @endif
+         @else
+           <p class="text-sm text-gray-500 dark:text-gray-400">
+              <a href="{{ route('login') }}" class="text-orange-500 font-semibold hover:underline">
+                 Connectez-vous
+              </a> pour noter cet article.
+          </p>
+     @endauth
+ </div>
+
+ <script>
+     function submitRating(stars, postId) 
+        {
+         document.getElementById('stars-input-' + postId).value = stars;
+         document.getElementById('rating-form-' + postId).submit();
+        }
+ </script>
+
+
     {{-- Articles liés --}}
     @if($related->isNotEmpty())
     <section class="mb-10">

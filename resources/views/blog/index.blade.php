@@ -203,15 +203,17 @@
                 <p class="text-gray-500 dark:text-gray-400 text-sm mb-4 leading-relaxed">
                     {{ $post->excerpt ?? Str::limit(strip_tags($post->content), 100) }}
                 </p>
-                <div class="flex items-center justify-between text-xs text-gray-400 pt-4 border-t border-gray-100 dark:border-gray-700">
-                    <div class="flex items-center gap-3">
-                        <span>📅 {{ $post->created_at->format('d/m/Y') }}</span>
-                        <span>⏱️ {{ $post->reading_time }} min</span>
-                    </div>
-                    <div class="flex items-center gap-3">
-                        <span>👁️ {{ $post->views }}</span>
-                        <span>💬 {{ $post->comments->where('is_approved', true)->count() }}</span>
-                    </div>
+                <div class="flex items-center gap-2">
+                    <span>📅 {{ $post->created_at->format('d/m/Y') }}</span>
+                    <span>👁️ {{ $post->views }}</span>
+                    <span>💬 {{ $post->comments->where('is_approved', true)->count() }}</span>
+                </div>
+                <div class="flex items-center gap-1">
+                  @php $avg = $post->averageRating(); @endphp
+                  @for($i = 1; $i <= 5; $i++)
+                    <span class="text-sm {{ $i <= $avg ? 'text-yellow-400' : 'text-gray-300' }}">★</span>
+                  @endfor
+                 <span class="text-xs text-gray-400 ml-1">({{ $post->ratings->count() }})</span>
                 </div>
             </div>
         </article>
