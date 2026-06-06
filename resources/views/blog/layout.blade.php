@@ -7,15 +7,21 @@
     <meta name="description" content="@yield('description', 'Solutions énergétiques accessibles pour le Bénin : solaire, kits, guides et actualités.')">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
-    <script>
-       tailwind.config = { darkMode: 'class' }
-       // Appliquer le thème sauvegardé immédiatement
-       if (localStorage.theme === 'dark' ||
-       (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) 
-       {
-         document.documentElement.classList.add('dark');
+   <script src="https://cdn.tailwindcss.com"></script>
+<script>
+    tailwind.config = { darkMode: 'class' }
+</script>
+<script>
+    // Appliquer le thème AVANT le rendu pour éviter le flash
+    (function() {
+        if (localStorage.theme === 'dark' ||
+           (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
         }
-    </script>
+    })();
+</script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
 
@@ -27,13 +33,25 @@
 
         {{-- Logo --}}
         <a href="{{ route('blog.index') }}" class="flex items-center gap-2 shrink-0">
-          <img src="{{ asset('images/logo.png.jpeg') }}" alt="EDL Logo" class="h-10 w-auto">
+            <div class="flex flex-col leading-none">
+                <span class="text-2xl font-extrabold bg-gradient-to-r from-orange-500 to-yellow-400 bg-clip-text text-transparent tracking-tight">
+                   Solar
+               </span>
+               <span class="text-2xl font-extrabold bg-gradient-to-r from-yellow-400 to-green-500 bg-clip-text text-transparent tracking-tight -mt-1">
+                   Access
+               </span>
+            </div>
         </a>
 
         {{-- Lien plateforme --}}
         <a href="{{ route('blog.about') }}"
            class="hidden md:block text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500 font-medium transition whitespace-nowrap">
             🚀 La plateforme
+        </a>
+
+        <a href="{{ route('blog.creator') }}"
+           class="hidden md:block text-sm text-gray-600 dark:text-gray-300 hover:text-orange-500 font-medium transition whitespace-nowrap">
+            👨‍💻 Le créateur
         </a>
 
         {{-- Recherche --}}
@@ -123,8 +141,8 @@
                         <span class="text-xl">☀️</span>
                     </div>
                     <div>
-                        <div class="text-white font-bold text-lg leading-none">EDL</div>
-                        <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
+                       <div class="text-white font-bold text-lg leading-none">Solar Access</div>
+                       <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div> 
                     </div>
                 </div>
                 <p class="text-sm leading-relaxed">
@@ -178,7 +196,7 @@
         </div>
 
         <div class="border-t border-gray-800 pt-6 flex flex-col md:flex-row justify-between items-center gap-2 text-sm">
-            <span>© {{ date('Y') }} EDL — Plateforme de Solutions Énergétiques pour le Bénin</span>
+            <span>© {{ date('Y') }} Solar Access — Plateforme de Solutions Énergétiques pour le Bénin</span>
             <span>EPAC / GIT 2025-2026</span>
         </div>
     </div>

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inscription — EDL Bénin</title>
+    <title>Inscription — Solar Access</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script>tailwind.config = { darkMode: 'class' }</script>
 </head>
@@ -14,13 +14,11 @@
     {{-- Panneau gauche --}}
     <div class="hidden md:flex md:w-1/2 bg-gradient-to-br from-green-500 via-yellow-500 to-orange-500 p-10 flex-col justify-between text-white">
         <div>
-            <a href="{{ route('blog.index') }}" class="flex items-center gap-2 mb-12">
-                <div class="w-12 h-12 bg-white/20 rounded-xl flex items-center justify-center text-2xl">☀️</div>
-                <div>
-                    <div class="text-xl font-extrabold leading-none">EDL</div>
-                    <div class="text-xs text-white/80">Énergie Pour le Bénin</div>
-                </div>
-            </a>
+           <div class="flex flex-col leading-none mb-12">
+              <span class="text-3xl font-extrabold text-white tracking-tight">Solar</span>
+              <span class="text-3xl font-extrabold text-yellow-200 tracking-tight -mt-1">Access</span>
+              <span class="text-sm text-white/70 mt-1">Énergie Pour le Bénin</span>
+          </div>
             <h2 class="text-3xl font-extrabold mb-4 leading-tight">
                 Rejoignez<br>la communauté ⚡
             </h2>
@@ -59,7 +57,7 @@
 
         <div class="md:hidden flex items-center gap-2 mb-8">
             <div class="w-10 h-10 bg-orange-500 rounded-xl flex items-center justify-center text-xl">☀️</div>
-            <div class="text-lg font-extrabold text-orange-600">EDL Bénin</div>
+            <div class="text-lg font-extrabold text-orange-600">Solar Access</div>
         </div>
 
         <h1 class="text-2xl font-extrabold text-gray-800 dark:text-white mb-2">Créer un compte</h1>

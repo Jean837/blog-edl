@@ -25,7 +25,14 @@
             {{ $post->title }}
         </h1>
         <div class="flex flex-wrap items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
-            <span>✍️ {{ $post->user->name }}</span>
+            <span class="flex items-center gap-1">
+               ✍️ {{ $post->user->name }}
+                 @if($post->user->isNamedAdmin())
+                        <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full font-medium">
+                         Administrateur nommé
+                        </span>
+                 @endif
+            </span>
             <span>📅 {{ $post->created_at->format('d M Y') }}</span>
             <span>👁️ {{ $post->views }} vues</span>
             <span>💬 {{ $post->comments->count() }} commentaire(s)</span>
@@ -229,6 +236,25 @@
     {{-- SECTION COMMENTAIRES --}}
     <section id="comments" class="bg-white dark:bg-gray-800 rounded-2xl shadow p-8">
 
+        {{-- Bouton J'aime --}}
+        <div class="flex items-center gap-4 mb-8 pb-6 border-b border-gray-100 dark:border-gray-700">
+            <button id="like-btn"
+                    onclick="toggleLike({{ $post->id }})"
+                    class="flex items-center gap-2 px-6 py-3 rounded-full font-semibold text-sm transition border-2
+                           {{ $post->isLikedBy(auth()->id()) 
+                              ? 'bg-red-500 border-red-500 text-white' 
+                              : 'bg-white dark:bg-gray-700 border-gray-200 dark:border-gray-600 text-gray-600 dark:text-gray-300 hover:border-red-400' }}">
+                <span id="like-icon">{{ $post->isLikedBy(auth()->id()) ? '❤️' : '🤍' }}</span>
+                <span id="like-text">{{ $post->isLikedBy(auth()->id()) ? 'J\'aime' : 'J\'aime' }}</span>
+                <span id="like-count" class="bg-white/20 px-2 py-0.5 rounded-full text-xs font-bold">
+                    {{ $post->likes->count() }}
+                </span>
+            </button>
+            <span class="text-sm text-gray-400">
+                {{ $post->likes->count() }} personne(s) aiment cet article
+            </span>
+        </div>
+
         <h2 class="text-xl font-bold text-gray-800 dark:text-white mb-6">
             💬 Commentaires ({{ $post->comments->count() }})
         </h2>
@@ -243,30 +269,152 @@
                 <div class="flex-1">
                     <div class="bg-gray-50 dark:bg-gray-700 rounded-2xl rounded-tl-none px-4 py-3">
                         <div class="flex items-center justify-between mb-1">
-                            <span class="font-semibold text-gray-800 dark:text-white text-sm">
-                                {{ $comment->user->name }}
-                            </span>
+                            <div>
+                                <span class="font-semibold text-gray-800 dark:text-white text-sm">
+                                    {{ $comment->user->name }}
+                                </span>
+                                @if($comment->user->isNamedAdmin())
+                                <span class="text-xs bg-orange-100 text-orange-600 px-2 py-0.5 rounded-full ml-1">
+                                    Administrateur nommé
+                                </span>
+                                @endif
+                            </div>
                             <span class="text-xs text-gray-400">
                                 {{ $comment->created_at->diffForHumans() }}
                             </span>
                         </div>
-                        <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
-                            {{ $comment->content }}
-                        </p>
+
+                        {{-- Contenu normal ou formulaire d'édition --}}
+                        <div id="comment-content-{{ $comment->id }}">
+                            <p class="text-gray-600 dark:text-gray-300 text-sm leading-relaxed">
+                                {{ $comment->content }}
+                            </p>
+                        </div>
+
+                        {{-- Formulaire d'édition (caché par défaut) --}}
+                        @auth
+                        @if(auth()->id() === $comment->user_id)
+                        <div id="edit-form-{{ $comment->id }}" class="hidden mt-2">
+                            <form method="POST" action="{{ route('comment.update', $comment) }}">
+                                @csrf @method('PATCH')
+                                <textarea name="content" rows="2"
+                                          class="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-600
+                                                 rounded-xl px-3 py-2 text-sm focus:outline-none focus:border-orange-400 resize-none">{{ $comment->content }}</textarea>
+                                <div class="flex gap-2 mt-2">
+                                    <button type="submit"
+                                            class="bg-orange-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-orange-600 transition">
+                                        Enregistrer
+                                    </button>
+                                    <button type="button"
+                                            onclick="toggleEdit('edit-form-{{ $comment->id }}')"
+                                            class="bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs hover:bg-gray-300 transition">
+                                        Annuler
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        @endif
+                        @endauth
                     </div>
 
+                    {{-- Actions commentaire --}}
+                    <div class="flex items-center gap-3 mt-2 ml-2">
+
+                        {{-- Répondre --}}
+                        @auth
+                        @if(auth()->user()->is_verified)
+                        <button onclick="toggleReply('reply-form-{{ $comment->id }}')"
+                                class="text-xs text-orange-500 hover:text-orange-600 font-semibold transition flex items-center gap-1">
+                            <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                            </svg>
+                            Répondre
+                        </button>
+                        @endif
+                        @endauth
+
+                        {{-- Modifier (seulement le propriétaire) --}}
+                        @auth
+                        @if(auth()->id() === $comment->user_id)
+                        <button onclick="toggleEdit('edit-form-{{ $comment->id }}')"
+                                class="text-xs text-blue-500 hover:text-blue-600 font-semibold transition">
+                            ✏️ Modifier
+                        </button>
+
+                        {{-- Supprimer (seulement le propriétaire) --}}
+                        <form method="POST" action="{{ route('comment.destroy', $comment) }}"
+                              onsubmit="return confirm('Supprimer ce commentaire ?')">
+                            @csrf @method('DELETE')
+                            <button type="submit"
+                                    class="text-xs text-red-500 hover:text-red-600 font-semibold transition">
+                                🗑️ Supprimer
+                            </button>
+                        </form>
+                        @endif
+                        @endauth
+
+                        {{-- Signaler (autres utilisateurs) --}}
+                        @auth
+                        @if(auth()->id() !== $comment->user_id && auth()->user()->is_verified)
+                        <button onclick="toggleReport('report-modal-{{ $comment->id }}')"
+                                class="text-xs text-gray-400 hover:text-red-500 font-semibold transition">
+                            🚩 Signaler
+                        </button>
+                        @endif
+                        @endauth
+
+                    </div>
+
+                    {{-- Modal signalement --}}
                     @auth
-                    @if(auth()->user()->is_verified)
-                    <button onclick="toggleReply('reply-form-{{ $comment->id }}')"
-                            class="text-xs text-orange-500 hover:text-orange-600 font-semibold mt-2 ml-2 flex items-center gap-1 transition">
-                        <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                        </svg>
-                        Répondre
-                    </button>
+                    @if(auth()->id() !== $comment->user_id)
+                    <div id="report-modal-{{ $comment->id }}"
+                         class="hidden mt-3 bg-red-50 dark:bg-gray-700 border border-red-200 dark:border-red-800 rounded-xl p-4">
+                        <h4 class="font-semibold text-gray-800 dark:text-white text-sm mb-3">
+                            🚩 Signaler ce commentaire
+                        </h4>
+                        <form method="POST" action="{{ route('comment.report', $comment) }}">
+                            @csrf
+                            <div class="space-y-2 mb-3">
+                                @foreach([
+                                    'spam'        => '🚫 Spam ou publicité',
+                                    'harcelement' => '😤 Harcèlement ou menaces',
+                                    'haineux'     => '💢 Contenu haineux',
+                                    'faux'        => '❌ Informations fausses',
+                                    'inapproprie' => '🔞 Contenu inapproprié',
+                                    'autre'       => '✏️ Autre raison',
+                                ] as $value => $label)
+                                <label class="flex items-center gap-2 cursor-pointer">
+                                    <input type="radio" name="reason" value="{{ $value }}"
+                                           class="accent-orange-500"
+                                           onchange="toggleOtherReason('{{ $comment->id }}', '{{ $value }}')">
+                                    <span class="text-sm text-gray-700 dark:text-gray-300">{{ $label }}</span>
+                                </label>
+                                @endforeach
+                            </div>
+                            <div id="other-reason-{{ $comment->id }}" class="hidden mb-3">
+                                <textarea name="other_reason" rows="2"
+                                          class="w-full border border-gray-200 dark:border-gray-600 dark:bg-gray-600
+                                                 rounded-xl px-3 py-2 text-xs focus:outline-none focus:border-orange-400 resize-none"
+                                          placeholder="Décrivez la raison..."></textarea>
+                            </div>
+                            <div class="flex gap-2">
+                                <button type="submit"
+                                        class="bg-red-500 text-white px-4 py-1.5 rounded-full text-xs font-semibold hover:bg-red-600 transition">
+                                    Envoyer le signalement
+                                </button>
+                                <button type="button"
+                                        onclick="toggleReport('report-modal-{{ $comment->id }}')"
+                                        class="bg-gray-200 dark:bg-gray-600 text-gray-600 dark:text-gray-300 px-4 py-1.5 rounded-full text-xs hover:bg-gray-300 transition">
+                                    Annuler
+                                </button>
+                            </div>
+                        </form>
+                    </div>
                     @endif
                     @endauth
 
+                    {{-- Formulaire de réponse --}}
                     @auth
                     @if(auth()->user()->is_verified)
                     <div id="reply-form-{{ $comment->id }}" class="hidden mt-3">
@@ -301,6 +449,7 @@
                     @endif
                     @endauth
 
+                    {{-- Réponses --}}
                     @if($comment->replies->isNotEmpty())
                     <div class="mt-4 ml-4 space-y-4 border-l-2 border-orange-100 dark:border-orange-900 pl-4">
                         @foreach($comment->replies as $reply)
@@ -312,9 +461,16 @@
                             <div class="flex-1">
                                 <div class="bg-orange-50 dark:bg-gray-600 rounded-2xl rounded-tl-none px-4 py-3">
                                     <div class="flex items-center justify-between mb-1">
-                                        <span class="font-semibold text-gray-800 dark:text-white text-xs">
-                                            {{ $reply->user->name }}
-                                        </span>
+                                        <div>
+                                            <span class="font-semibold text-gray-800 dark:text-white text-xs">
+                                                {{ $reply->user->name }}
+                                            </span>
+                                            @if($reply->user->isNamedAdmin())
+                                            <span class="text-xs bg-orange-100 text-orange-600 px-1.5 py-0.5 rounded-full ml-1">
+                                                Admin nommé
+                                            </span>
+                                            @endif
+                                        </div>
                                         <span class="text-xs text-gray-400">
                                             {{ $reply->created_at->diffForHumans() }}
                                         </span>
@@ -323,6 +479,18 @@
                                         {{ $reply->content }}
                                     </p>
                                 </div>
+                                {{-- Supprimer sa réponse --}}
+                                @auth
+                                @if(auth()->id() === $reply->user_id)
+                                <form method="POST" action="{{ route('comment.destroy', $reply) }}"
+                                      onsubmit="return confirm('Supprimer ?')" class="mt-1 ml-2">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="text-xs text-red-400 hover:text-red-600 transition">
+                                        🗑️ Supprimer
+                                    </button>
+                                </form>
+                                @endif
+                                @endauth
                             </div>
                         </div>
                         @endforeach
@@ -408,11 +576,24 @@
 <script>
 function toggleReply(id) {
     const form = document.getElementById(id);
-    if (form.classList.contains('hidden')) {
-        form.classList.remove('hidden');
-        form.querySelector('textarea').focus();
+    form.classList.toggle('hidden');
+    if (!form.classList.contains('hidden')) form.querySelector('textarea').focus();
+}
+
+function toggleEdit(id) {
+    document.getElementById(id).classList.toggle('hidden');
+}
+
+function toggleReport(id) {
+    document.getElementById(id).classList.toggle('hidden');
+}
+
+function toggleOtherReason(commentId, value) {
+    const div = document.getElementById('other-reason-' + commentId);
+    if (value === 'autre') {
+        div.classList.remove('hidden');
     } else {
-        form.classList.add('hidden');
+        div.classList.add('hidden');
     }
 }
 
@@ -431,6 +612,39 @@ function copyLink(btn) {
 function submitRating(stars, postId) {
     document.getElementById('stars-input-' + postId).value = stars;
     document.getElementById('rating-form-' + postId).submit();
+}
+
+function toggleLike(postId) {
+    @auth
+    fetch('/article/' + postId + '/like', {
+        method: 'POST',
+        headers: {
+            'X-CSRF-TOKEN': '{{ csrf_token() }}',
+            'Content-Type': 'application/json',
+            'Accept': 'application/json',
+        }
+    })
+    .then(r => r.json())
+    .then(data => {
+        const btn   = document.getElementById('like-btn');
+        const icon  = document.getElementById('like-icon');
+        const count = document.getElementById('like-count');
+
+        count.textContent = data.count;
+
+        if (data.liked) {
+            btn.classList.add('bg-red-500', 'border-red-500', 'text-white');
+            btn.classList.remove('bg-white', 'dark:bg-gray-700', 'border-gray-200', 'dark:border-gray-600', 'text-gray-600', 'dark:text-gray-300', 'hover:border-red-400');
+            icon.textContent = '❤️';
+        } else {
+            btn.classList.remove('bg-red-500', 'border-red-500', 'text-white');
+            btn.classList.add('bg-white', 'dark:bg-gray-700', 'border-gray-200', 'dark:border-gray-600', 'text-gray-600', 'dark:text-gray-300', 'hover:border-red-400');
+            icon.textContent = '🤍';
+        }
+    });
+    @else
+    window.location.href = '{{ route("login") }}';
+    @endauth
 }
 </script>
 

@@ -33,13 +33,27 @@ class User extends Authenticatable
         ];
     }
 
-    // Vérifie si l'utilisateur est admin
     public function isAdmin(): bool {
+        return in_array($this->role, ['admin', 'named_admin']);
+    }
+
+    public function isNamedAdmin(): bool {
+        return $this->role === 'named_admin';
+    }
+
+    public function isSuperAdmin(): bool {
         return $this->role === 'admin';
     }
 
-    // Vérifie si l'utilisateur est simple user
     public function isUser(): bool {
         return $this->role === 'user';
+    }
+
+    public function getRoleBadge(): string {
+        return match($this->role) {
+            'admin'       => 'Super Administrateur',
+            'named_admin' => 'Administrateur nommé',
+            default       => '',
+        };
     }
 }

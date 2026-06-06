@@ -14,12 +14,9 @@
     <aside class="w-64 bg-gray-900 dark:bg-gray-950 min-h-screen p-6 fixed flex flex-col">
 
         {{-- Logo --}}
-       <div class="flex items-center gap-2">
-          <img src="{{ asset('images/logo.png.jpeg') }}" alt="EDL Logo" class="h-8 w-auto">
-          <div>
-              <div class="text-white font-extrabold leading-none">EDL Admin</div>
-              <div class="text-xs text-gray-500 leading-none">Énergie Pour le Bénin</div>
-         </div>
+      <div class="flex flex-col leading-none">
+          <span class="text-xl font-extrabold text-orange-400 tracking-tight">Solar</span>
+          <span class="text-xl font-extrabold text-yellow-400 tracking-tight -mt-1">Access</span>
       </div>
 
         {{-- Navigation --}}
@@ -56,6 +53,12 @@
                class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-gray-700 px-4 py-2.5 rounded-xl transition
                       {{ request()->routeIs('admin.categories.*') ? 'bg-gray-700 text-white' : '' }}">
                 🏷️ Catégories
+            </a>
+
+            <a href="{{ route('admin.users.index') }}"
+               class="flex items-center gap-3 text-gray-300 hover:text-white hover:bg-gray-700 px-4 py-2.5 rounded-xl transition
+                     {{ request()->routeIs('admin.users.*') ? 'bg-gray-700 text-white' : '' }}">
+               👥 Utilisateurs
             </a>
 
             <hr class="border-gray-800 my-3">

@@ -54,7 +54,11 @@ class BlogController extends Controller
                     ->firstOrFail();
 
         // Incrémenter les vues
-        $post->increment('views');
+        $sessionKey = 'viewed_post_' . $post->id;
+           if (!session()->has($sessionKey)) {
+               $post->increment('views');
+                session()->put($sessionKey, true);
+        }
 
         $related = Post::where('category_id', $post->category_id)
                        ->where('id', '!=', $post->id)

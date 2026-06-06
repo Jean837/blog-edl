@@ -7,12 +7,30 @@ window.Alpine = Alpine;
 Alpine.start();
 
 // ── Dark Mode ──────────────────────────────────────────────
-const html = document.documentElement;
+window.toggleDarkMode = function () {
+    const html = document.documentElement;
+    if (html.classList.contains('dark')) {
+        html.classList.remove('dark');
+        localStorage.theme = 'light';
+    } else {
+        html.classList.add('dark');
+        localStorage.theme = 'dark';
+    }
+    updateDarkModeIcon();
+}
+
+function updateDarkModeIcon() {
+    const btn = document.getElementById('dark-mode-btn');
+    if (!btn) return;
+    btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+}
+
+document.addEventListener('DOMContentLoaded', updateDarkModeIcon);
 
 // Appliquer le thème sauvegardé dès le chargement
 if (localStorage.theme === 'dark' ||
    (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
-  html.classList.add('dark');
+  document.documentElement.classList.add('dark');
 } else {
   html.classList.remove('dark');
 }
