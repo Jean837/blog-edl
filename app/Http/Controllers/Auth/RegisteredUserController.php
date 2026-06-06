@@ -37,7 +37,7 @@ class RegisteredUserController extends Controller
             'verification_code_expires_at' => now()->addMinutes(15),
         ]);
 
-        Mail::to($user->email)->queue(new VerificationCodeMail($code, $user->name));
+        Mail::to($user->email)->send(new VerificationCodeMail($code, $user->name));
 
         Auth::login($user);
 
