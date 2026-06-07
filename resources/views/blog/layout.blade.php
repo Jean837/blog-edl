@@ -11,16 +11,41 @@
 <script>
     tailwind.config = { darkMode: 'class' }
 </script>
+<script src="https://cdn.tailwindcss.com"></script>
 <script>
-    // Appliquer le thème AVANT le rendu pour éviter le flash
+    tailwind.config = { darkMode: 'class' }
+</script>
+<script>
+    // Appliquer le thème sauvegardé immédiatement
     (function() {
-        if (localStorage.theme === 'dark' ||
-           (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        if (localStorage.theme === 'dark') {
             document.documentElement.classList.add('dark');
         } else {
             document.documentElement.classList.remove('dark');
         }
     })();
+
+    // Toggle dark mode
+    window.toggleDarkMode = function() {
+        const html = document.documentElement;
+        if (html.classList.contains('dark')) {
+            html.classList.remove('dark');
+            localStorage.theme = 'light';
+            document.getElementById('dark-mode-btn').textContent = '🌙';
+        } else {
+            html.classList.add('dark');
+            localStorage.theme = 'dark';
+            document.getElementById('dark-mode-btn').textContent = '☀️';
+        }
+    }
+
+    // Mettre la bonne icône au chargement
+    document.addEventListener('DOMContentLoaded', function() {
+        const btn = document.getElementById('dark-mode-btn');
+        if (btn) {
+            btn.textContent = document.documentElement.classList.contains('dark') ? '☀️' : '🌙';
+        }
+    });
 </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 transition-colors duration-300">
